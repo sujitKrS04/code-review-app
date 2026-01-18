@@ -58,8 +58,8 @@ A modern, responsive AI-powered code review platform for programming education t
 
 ```bash
 # 1. Clone and install
-git clone <repository-url>
-cd ai-code-review-platform
+git clone https://github.com/sujitKrS04/code-review-app.git
+cd code-review-app
 npm run install:all
 
 # 2. Set up environment variables
