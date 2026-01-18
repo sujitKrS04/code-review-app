@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(uuid())
+  email             String        @unique
+  password          String
+  name              String
+  role              Role          @default(STUDENT)
+  level             SkillLevel    @default(BEGINNER)
+  currentStreak     Int           @default(0)
+  longestStreak     Int           @default(0)
+  lastSubmissionDate DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  submissions   Submission[]
+  progress      Progress[]
+  achievements  Achievement[]
+
+  @@index([email])
+}
+
+model Submission {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code            String        @db.Text
+  language        String
+  assignmentName  String
+  createdAt       DateTime      @default(now())
+  
+  reviews         Review[]
+  plagiarismChecks PlagiarismCheck[]
+
+  @@index([userId, createdAt])
+  @@index([assignmentName])
+}
+
+model Review {
+  id            String      @id @default(uuid())
+  submissionId  String
+  submission    Submission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  overallScore  Float
+  feedback      Json        // Detailed feedback object
+  suggestions   Json        // Array of suggestions
+  resources     Json        // Learning resources
+  metrics       Json?       // Code metrics
+  complexity    Json?       // Complexity analysis
+  createdAt     DateTime    @default(now())
+
+  @@index([submissionId])
+}
+
+model Progress {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillCategory     String
+  skillLevel        Float     @default(0)
+  submissionsCount  Int       @default(0)
+  lastUpdated       DateTime  @updatedAt
+
+  @@unique([userId, skillCategory])
+  @@index([userId])
+}
+
+model PlagiarismCheck {
+  id              String      @id @default(uuid())
+  submissionId    String
+  submission      Submission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  similarityScore Float
+  matches         Json        // Array of similar submissions
+  createdAt       DateTime    @default(now())
+
+  @@index([submissionId])
+}
+
+model Achievement {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  description String
+  earnedAt    DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model PracticeProblem {
+  id          String    @id @default(uuid())
+  title       String
+  description String    @db.Text
+  difficulty  Difficulty
+  category    String
+  language    String
+  hints       Json      // Array of hint strings
+  testCases   Json      // Array of test cases
+  solution    String?   @db.Text
+  createdAt   DateTime  @default(now())
+
+  @@index([difficulty, category])
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}

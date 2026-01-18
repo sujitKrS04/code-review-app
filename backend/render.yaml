@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: ai-code-review-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLAUDE_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: true
